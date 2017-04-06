@@ -11,29 +11,7 @@ function updateCounters() {
   $("#todo-count").html($(".todo").size() - $(".success").size());
 }
 
-function nextTodoId() {
-  return $(".todo").size() + 1;
-}
-
 function createTodo(title) {
-  var checkboxId = "todo-" + nextTodoId();
-
-  var label = $('<label></label>')
-    .attr('for', checkboxId)
-    .html(title);
-
-  var checkbox = $('<input type="checkbox" value="1" />')
-    .attr('id', checkboxId)
-    .bind('change', toggleDone);
-
-  var tableRow = $('<tr class="todo"></td>')
-    .append($('<td>').append(checkbox))
-    .append($('<td>').append(label));
-
-  $("#todoList").append( tableRow );
-
-  updateCounters();
-
   var newTodo = { title: title, completed: false };
 
   $.ajax({
@@ -43,7 +21,32 @@ function createTodo(title) {
       todo: newTodo
     }),
     contentType: "application/json",
-    dataType: "json" })
+    dataType: "json"
+  })
+
+  .done(function(data) {
+    console.log(data);
+
+
+    var checkboxId = data.id;
+
+    var label = $('<label></label>')
+      .attr('for', checkboxId)
+      .html(title);
+
+    var checkbox = $('<input type="checkbox" value="1" />')
+      .attr('id', checkboxId)
+      .bind('change', toggleDone);
+
+    var tableRow = $('<tr class="todo"></td>')
+      .attr('data-id', checkboxId)
+      .append($('<td>').append(checkbox))
+      .append($('<td>').append(label));
+
+    $("#todoList").append( tableRow );
+
+    updateCounters();
+  })
 
     .fail(function(error) {
       console.log(error);
@@ -64,8 +67,14 @@ function showError(message) {
 
 }
 
+function resetErrors() {
+  $("#error_message").remove();
+  $("#formgroup-title").removeClass("has-error")
+}
+
 function submitTodo(event) {
   event.preventDefault();
+  resetErrors();
   createTodo($("#todo_title").val());
   $("#todo_title").val(null);
   updateCounters();
